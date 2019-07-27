@@ -7,18 +7,22 @@
 //
 
 import UIKit
+import Disk
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     @IBOutlet weak var todoTableView: UITableView!
     
-    var todos: [String] = ["Learn Swift","Develop IOS APP","Earn money"]
+//    var todos: [TodoModel] = [TodoModel(data: "Learn Swift", isChecked: true), TodoModel(data: "Develop nice IOS app", isChecked: false), TodoModel(data: "Stay happy", isChecked: false)]
+    
+    var todos = [TodoModel]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         todoTableView.delegate = self
         todoTableView.dataSource = self
+        getTodo()
     }
 
     @IBAction func addTodo(_ sender: Any) {
@@ -27,8 +31,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         let addTodoAction = UIAlertAction(title: "Add", style: .default) { (action) in
             let newTodo = todoAlert.textFields![0]
-            self.todos.append(newTodo.text!)
+            self.todos.append(TodoModel(data: newTodo.text!, isChecked: false))
             self.todoTableView.reloadData()
+            self.saveTodo()
         }
         
         let cancelTodoAction = UIAlertAction(title: "Cancel", style: .cancel)
@@ -51,7 +56,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "todoCell", for: indexPath) as! TodoCell
         
-        cell.todoLabel.text = todos[indexPath.row]
+        if(todos[indexPath.row].isChecked == true)
+            {
+                cell.todoLabel.attributedText = strikeThroughText(todos[indexPath.row].data!)
+        }
+        else
+        {
+            cell.todoLabel.text = todos[indexPath.row].data
+        }
 
         return cell
     }
@@ -60,9 +72,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let cell = tableView.cellForRow(at: indexPath) as! TodoCell
         cell.contentView.backgroundColor = UIColor.white
         
-        if(cell.isChecked == false){
-            cell.todoLabel.attributedText = strikeThroughText(todos[indexPath.row])
-            cell.isChecked = true
+        if(todos[indexPath.row].isChecked == false){
+            cell.todoLabel.attributedText = strikeThroughText(todos[indexPath.row].data!)
+//            cell.isChecked = true
+            todos[indexPath.row].isChecked = true
             UIView.animate(withDuration: 0.1, animations: {
                 cell.transform = cell.transform.scaledBy(x: 1.5, y: 1.5)
             }, completion: {
@@ -75,9 +88,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         else
         {
             cell.todoLabel.attributedText = nil
-            cell.todoLabel.text = todos[indexPath.row]
-            cell.isChecked = false
+            cell.todoLabel.text = todos[indexPath.row].data!
+//            cell.isChecked = false
+            todos[indexPath.row].isChecked = false
+
         }
+        
+        saveTodo()
     }
     
     
@@ -95,6 +112,23 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
         deleteAction.backgroundColor = UIColor.red
         return [deleteAction]
+    }
+    
+    func saveTodo() {
+        do{
+        try Disk.save(todos, to: .caches, as: "todos.json")
+        } catch let error as NSError{
+            print(error)
+        }
+    }
+    
+    func getTodo() {
+        do{
+        todos = try Disk.retrieve("todos.json", from: .caches, as: [TodoModel].self)
+        }catch let error as NSError{
+            print(error)
+            todos = []
+        }
     }
 }
 
