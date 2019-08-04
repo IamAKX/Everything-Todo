@@ -80,6 +80,7 @@
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <connections>
+                        <outlet property="progressBar" destination="1LF-Sw-dab" id="ZE7-w4-UVA"/>
                         <outlet property="todoTableView" destination="hcE-pW-Ios" id="ri5-Vk-Kg0"/>
                     </connections>
                 </viewController>

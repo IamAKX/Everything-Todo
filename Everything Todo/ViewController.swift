@@ -15,7 +15,29 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
 //    var todos: [TodoModel] = [TodoModel(data: "Learn Swift", isChecked: true), TodoModel(data: "Develop nice IOS app", isChecked: false), TodoModel(data: "Stay happy", isChecked: false)]
     
-    var todos = [TodoModel]()
+    var todos:[TodoModel]! {
+        didSet{
+            progressBar.setProgress(progress, animated: true)
+        }
+    }
+    
+    var progress:Float {
+        if todos.count == 0
+        {
+            return Float(0)
+        }
+        
+        var complete = 0;
+        for m in todos {
+            if(m.isChecked == true)
+            {
+                complete+=1;
+            }
+        }
+        return Float(complete)/Float(todos.count)
+    }
+    
+    @IBOutlet weak var progressBar: UIProgressView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,6 +45,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         todoTableView.delegate = self
         todoTableView.dataSource = self
         getTodo()
+        updateProgress()
     }
 
     @IBAction func addTodo(_ sender: Any) {
@@ -120,6 +143,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         } catch let error as NSError{
             print(error)
         }
+        updateProgress()
     }
     
     func getTodo() {
@@ -129,6 +153,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             print(error)
             todos = []
         }
+    }
+    
+    func updateProgress()
+    {
+        progressBar.setProgress(progress, animated: true)
     }
 }
 
